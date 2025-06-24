@@ -16,7 +16,7 @@ const TicketItem = ({ ticket }: { ticket: Ticket }) => {
           <span style={{ fontSize: "20px" }}>&#128366;</span>
           <span className="ml-1">{ticket.description}</span>
         </p>
-        <p className="text-sm text-gray-500">👤 {ticket.assigneeId}</p>
+        <p className="text-sm text-gray-500">👤 {ticket.assigneeName}</p>
       </div>
       <div className="flex items-center gap-4">
         <TicketStatusBadge status={ticket.status} />

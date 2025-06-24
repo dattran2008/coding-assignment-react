@@ -6,21 +6,25 @@ import { Ticket } from "../../models/index";
 import { User } from "@acme/shared-models";
 import { assignTicket } from "../../api/tickets";
 
-export interface TicketsProps {
-  tickets: Ticket[];
-}
-
-const Tickets = (props: TicketsProps) => {
+const Tickets = () => {
   const [users, setUsers] = useState([] as User[]);
-  const [ticketList, setTicketList] = useState<Ticket[]>(props.tickets);
+  const [ticketList, setTicketList] = useState<Ticket[]>([]);
   const [filter, setFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
+
+  const handleMapUser = (ticketsData: Ticket[], usersData: User[]) => {
+    return ticketsData.map((ticket: any) => {
+      const user = usersData.find((u: any) => u.id === ticket.assigneeId);
+      return { ...ticket, assigneeName: user?.name ?? "Unknown" };
+    });
+  };
 
   const handleCreateTicket = async (data: {
     title: string;
     description: string;
     assigneeId: string;
   }) => {
+    const assigneeId = parseInt(data.assigneeId);
     const response = await fetch("/api/tickets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -29,42 +33,58 @@ const Tickets = (props: TicketsProps) => {
 
     const newTicket = await response.json();
     if (newTicket.id) {
-      const result = await assignTicket(
-        newTicket.id,
-        parseInt(data.assigneeId)
-      );
-      result.ok &&
-        setTicketList([
-          ...ticketList,
-          { ...newTicket, assigneeId: data.assigneeId },
-        ]);
+      const result = await assignTicket(newTicket.id, assigneeId);
+      if (result.ok) {
+        const newData = handleMapUser(
+          [...ticketList, { ...newTicket, assigneeId }],
+          users
+        );
+        setTicketList(newData);
+      }
     }
     setShowModal(false);
+  };
+
+  const fetchTickets = async () => {
+    const response = await fetch("/api/tickets");
+    const data = await response.json();
+    return data;
   };
 
   const fetchUsers = async () => {
     const response = await fetch("/api/users");
     const data = await response.json();
-    setUsers(data);
+    return data;
+  };
+
+  const fetchAll = async () => {
+    const [usersData, ticketsData] = await Promise.all([
+      fetchUsers(),
+      fetchTickets(),
+    ]);
+
+    const newTicketList = handleMapUser(ticketsData, usersData);
+    setUsers(usersData);
+    setTicketList(newTicketList);
   };
 
   useEffect(() => {
     switch (filter) {
       case "Open":
-        const openData = props.tickets.filter((item) => !item.completed);
+        const openData = ticketList.filter((item) => !item.completed);
         setTicketList(openData);
         break;
       case "Completed":
-        const completedData = props.tickets.filter((item) => item.completed);
+        const completedData = ticketList.filter((item) => item.completed);
         setTicketList(completedData);
         break;
       default:
-        setTicketList(props.tickets);
+        setTicketList(ticketList);
     }
-  }, [filter, props.tickets]);
+  }, [filter, ticketList]);
 
   useEffect(() => {
-    fetchUsers();
+    fetchAll();
   }, []);
 
   return (
