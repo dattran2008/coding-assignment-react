@@ -1,30 +1,23 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
-import { User } from "@acme/shared-models";
 import { Ticket } from "./models/index";
-
 import styles from "./app.module.css";
+
 import Tickets from "./features/tickets/tickets";
+import TicketDetails from "./features/ticket-details/ticket-details";
 
 const App = () => {
   const [tickets, setTickets] = useState([] as Ticket[]);
-  const [users, setUsers] = useState([] as User[]);
 
-  // Very basic way to synchronize state with server.
+  async function fetchTickets() {
+    const response = await fetch("/api/tickets");
+    const data = await response.json();
+    setTickets(data);
+  }
+
   // Feel free to use any state/fetch library you want (e.g. react-query, xstate, redux, etc.).
   useEffect(() => {
-    async function fetchTickets() {
-      const data = await fetch("/api/tickets").then();
-      setTickets(await data.json());
-    }
-
-    async function fetchUsers() {
-      const data = await fetch("/api/users").then();
-      setUsers(await data.json());
-    }
-
     fetchTickets();
-    fetchUsers();
   }, []);
 
   return (
@@ -33,7 +26,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Tickets tickets={tickets} />} />
         {/* Hint: Try `npx nx g component TicketDetails --project=client --no-export` to generate this component  */}
-        <Route path="/:id" element={<h2>Details Not Implemented</h2>} />
+        <Route path="/:id" element={<TicketDetails />} />
       </Routes>
     </div>
   );
