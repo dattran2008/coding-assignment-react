@@ -9,6 +9,7 @@ import { assignTicket } from "../../api/tickets";
 const Tickets = () => {
   const [users, setUsers] = useState([] as User[]);
   const [ticketList, setTicketList] = useState<Ticket[]>([]);
+  const [filteredList, setfilteredList] = useState<Ticket[]>([]);
   const [filter, setFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
 
@@ -25,36 +26,48 @@ const Tickets = () => {
     assigneeId: string;
   }) => {
     const assigneeId = parseInt(data.assigneeId);
-    const response = await fetch("/api/tickets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    const newTicket = await response.json();
-    if (newTicket.id) {
-      const result = await assignTicket(newTicket.id, assigneeId);
-      if (result.ok) {
-        const newData = handleMapUser(
-          [...ticketList, { ...newTicket, assigneeId }],
-          users
-        );
-        setTicketList(newData);
+    try {
+      const response = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const newTicket = await response.json();
+      if (newTicket.id) {
+        const result = await assignTicket(newTicket.id, assigneeId);
+        if (result?.ok) {
+          const newData = handleMapUser(
+            [...ticketList, { ...newTicket, assigneeId }],
+            users
+          );
+          setTicketList(newData);
+        }
       }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setShowModal(false);
     }
-    setShowModal(false);
   };
 
   const fetchTickets = async () => {
-    const response = await fetch("/api/tickets");
-    const data = await response.json();
-    return data;
+    try {
+      const response = await fetch("/api/tickets");
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const fetchUsers = async () => {
-    const response = await fetch("/api/users");
-    const data = await response.json();
-    return data;
+    try {
+      const response = await fetch("/api/users");
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const fetchAll = async () => {
@@ -62,8 +75,8 @@ const Tickets = () => {
       fetchUsers(),
       fetchTickets(),
     ]);
-
     const newTicketList = handleMapUser(ticketsData, usersData);
+
     setUsers(usersData);
     setTicketList(newTicketList);
   };
@@ -72,16 +85,20 @@ const Tickets = () => {
     switch (filter) {
       case "Open":
         const openData = ticketList.filter((item) => !item.completed);
-        setTicketList(openData);
+        setfilteredList(openData);
         break;
       case "Completed":
         const completedData = ticketList.filter((item) => item.completed);
-        setTicketList(completedData);
+        setfilteredList(completedData);
         break;
       default:
-        setTicketList(ticketList);
+        setfilteredList(ticketList);
     }
-  }, [filter, ticketList]);
+  }, [filter]);
+
+  useEffect(() => {
+    setfilteredList(ticketList);
+  }, [ticketList]);
 
   useEffect(() => {
     fetchAll();
@@ -100,7 +117,7 @@ const Tickets = () => {
         </button>
       </div>
       <div className="space-y-3">
-        {ticketList.map((ticket) => (
+        {filteredList.map((ticket) => (
           <TicketItem key={ticket.id} ticket={ticket} />
         ))}
       </div>

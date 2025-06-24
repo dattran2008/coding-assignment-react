@@ -1,6 +1,6 @@
 import { Ticket } from "./../models/index";
 
-const StatusBadge = ({ status }: { status: Ticket["status"] }) => {
+const StatusBadge = ({ status = "Open" }: { status: Ticket["status"] }) => {
   const style = {
     Open: "bg-gray-200 text-gray-800",
     "In Progress": "bg-yellow-200 text-yellow-800",

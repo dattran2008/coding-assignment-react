@@ -1,10 +1,14 @@
 export const fetchTicketDetail = async (id: any) => {
-  const res = await fetch(`/api/tickets/${id}`);
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
+  try {
+    const res = await fetch(`/api/tickets/${id}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch data");
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error(error);
   }
-  const data = await res.json();
-  return data;
 };
 
 export const assignTicket = async (ticketId: number, userId: number) => {
@@ -15,6 +19,5 @@ export const assignTicket = async (ticketId: number, userId: number) => {
   if (!res.ok) {
     throw new Error("Something error, please try again.");
   }
-
   return res;
 };

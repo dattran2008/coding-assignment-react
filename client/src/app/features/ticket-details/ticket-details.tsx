@@ -13,11 +13,15 @@ export function TicketDetails(props: TicketDetailsProps) {
   const { id } = useParams();
 
   const markTicketComplete = async () => {
-    const res = await fetch(`/api/tickets/${id}/complete`, {
-      method: "PUT",
-    });
-    if (!res.ok) {
-      throw new Error("Something error, please try again.");
+    try {
+      const res = await fetch(`/api/tickets/${id}/complete`, {
+        method: "PUT",
+      });
+      if (!res.ok) {
+        throw new Error("Something error, please try again.");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -31,6 +35,7 @@ export function TicketDetails(props: TicketDetailsProps) {
   const { data: ticket } = useQuery<Ticket>({
     queryKey: ["ticket", id],
     queryFn: () => fetchTicketDetail(id),
+    enabled: !!id,
     staleTime: 1000 * 60 * 5, // cache for 5 minutes
   });
 

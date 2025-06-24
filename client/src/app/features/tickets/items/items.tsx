@@ -19,7 +19,7 @@ const TicketItem = ({ ticket }: { ticket: Ticket }) => {
         <p className="text-sm text-gray-500">👤 {ticket.assigneeName}</p>
       </div>
       <div className="flex items-center gap-4">
-        <TicketStatusBadge status={ticket.status} />
+        <TicketStatusBadge status={ticket.completed ? "Completed" : "Open"} />
         <span
           className="text-blue-600 text-sm cursor-pointer"
           onClick={onSelectTicket}
